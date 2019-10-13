@@ -14,24 +14,24 @@ class LocalSettingsManagerBloc extends SettingsManagerBloc {
   KeyValueStore prefs;
   LoadedSettingsManagerState _updateSettings(UpdateSettingsEvent event) {
     try {
-      ThemeMode options = event.themeOptions;
-      TextAlign align = event.textAlign;
+      PreferredBrightness options = event.themeOptions;
+      PreferredTextAlign align = event.textAlign;
       FontSize size = event.fontSize;
-      TargetPlatform platform = event.targetPlatform;
+      AbstractTargetPlatform platform = event.targetPlatform;
       if (options == null) {
         final int themeOptions = getInt('themeOptions');
         options = themeOptions == null
             ? null
-            : ThemeMode.values.elementAt(themeOptions);
+            : PreferredBrightness.values.elementAt(themeOptions);
       } else {
-        prefs.setInt('themeOptions', ThemeMode.values.indexOf(options));
+        prefs.setInt('themeOptions', PreferredBrightness.values.indexOf(options));
       }
       if (align == null) {
         final int textAlign = getInt('textAlign');
         align =
-            textAlign == null ? null : TextAlign.values.elementAt(textAlign);
+            textAlign == null ? null : PreferredTextAlign.values.elementAt(textAlign);
       } else {
-        prefs.setInt('textAlign', TextAlign.values.indexOf(align));
+        prefs.setInt('textAlign', PreferredTextAlign.values.indexOf(align));
       }
       if (size == null) {
         final int fontSize = getInt('fontSize');
@@ -41,9 +41,9 @@ class LocalSettingsManagerBloc extends SettingsManagerBloc {
       }
       if (platform == null) {
         final int targetPlatform = getInt('targetPlatform');
-        platform = targetPlatform == null ? null : TargetPlatform.values.elementAt(targetPlatform);
+        platform = targetPlatform == null ? null : AbstractTargetPlatform.values.elementAt(targetPlatform);
       } else {
-        prefs.setInt('targetPlatform', TargetPlatform.values.indexOf(platform));
+        prefs.setInt('targetPlatform', AbstractTargetPlatform.values.indexOf(platform));
       }
       return LoadedSettingsManagerState(
           themeOptions: options, textAlign: align, fontSize: size,targetPlatform: platform);
@@ -55,17 +55,17 @@ class LocalSettingsManagerBloc extends SettingsManagerBloc {
   _initialize() {
     prefs ??= keyValueStore;
     final int themeOptions = getInt('themeOptions');
-    final ThemeMode options =
-        themeOptions == null ? null : ThemeMode.values.elementAt(themeOptions);
+    final PreferredBrightness options =
+        themeOptions == null ? null : PreferredBrightness.values.elementAt(themeOptions);
     final int textAlign = getInt('textAlign');
-    final TextAlign align =
-        textAlign == null ? null : TextAlign.values.elementAt(textAlign);
+    final PreferredTextAlign align =
+        textAlign == null ? null : PreferredTextAlign.values.elementAt(textAlign);
     final int fontSize = getInt('fontSize');
     final FontSize size =
         fontSize == null ? null : FontSize.values.elementAt(fontSize);
     final int targetPlatform = getInt('targetPlatform');
-    final TargetPlatform platform =
-    targetPlatform == null ? null : TargetPlatform.values.elementAt(targetPlatform);
+    final AbstractTargetPlatform platform =
+    targetPlatform == null ? null : AbstractTargetPlatform.values.elementAt(targetPlatform);
     dispatch(LoadedSettingsEvent(
         themeOptions: options, textAlign: align, fontSize: size,targetPlatform: platform));
   }

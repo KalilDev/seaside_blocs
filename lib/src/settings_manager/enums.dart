@@ -1,8 +1,8 @@
 enum FontSize { smallest, small, normal, big, biggest }
-enum TextAlign { left, right, center, justify }
-enum ThemeMode { system, light, dark}
+enum PreferredTextAlign { left, right, center, justify }
+enum PreferredBrightness { system, light, dark}
 
-enum TargetPlatform {
+enum AbstractTargetPlatform {
   android,
   iOS,
 }

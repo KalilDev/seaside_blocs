@@ -7,10 +7,10 @@ import 'enums.dart';
 abstract class SettingsManagerState extends Equatable {
   SettingsManagerState(
       {this.themeOptions, this.textAlign, this.fontSize, this.targetPlatform});
-  final ThemeMode themeOptions;
-  final TextAlign textAlign;
+  final PreferredBrightness themeOptions;
+  final PreferredTextAlign textAlign;
   final FontSize fontSize;
-  final TargetPlatform targetPlatform;
+  final AbstractTargetPlatform targetPlatform;
   @override
   List<Object> get props => [themeOptions,textAlign,fontSize,targetPlatform];
 }
@@ -19,7 +19,7 @@ class PlaceholderSettingsManagerState extends SettingsManagerState {}
 
 class LoadedSettingsManagerState extends SettingsManagerState {
   LoadedSettingsManagerState(
-      {ThemeMode themeOptions, TextAlign textAlign, FontSize fontSize,TargetPlatform targetPlatform})
+      {PreferredBrightness themeOptions, PreferredTextAlign textAlign, FontSize fontSize,AbstractTargetPlatform targetPlatform})
       : super(
             themeOptions: themeOptions,
             textAlign: textAlign,
