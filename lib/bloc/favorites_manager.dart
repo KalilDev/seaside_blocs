@@ -1,0 +1,1 @@
+export 'package:seaside_blocs/src/favorites_manager/bloc.dart';

@@ -10,7 +10,7 @@ environment:
 dependencies:
   bloc:
   firebase_abstraction:
-    git: https://github.com/kalildev/firebase_abstraction.git
+    path: ../firebase_abstraction
   key_value_store:
   tuple:
   equatable:

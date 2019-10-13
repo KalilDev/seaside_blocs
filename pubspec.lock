@@ -25,11 +25,9 @@ packages:
   firebase_abstraction:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "98fc4399f764da2a5e67760f6c603dd93d142c46"
-      url: "https://github.com/kalildev/firebase_abstraction.git"
-    source: git
+      path: "..\\firebase_abstraction"
+      relative: true
+    source: path
     version: "0.0.1"
   key_value_store:
     dependency: "direct main"

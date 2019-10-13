@@ -1,1 +1,0 @@
-library seaside_blocs;
