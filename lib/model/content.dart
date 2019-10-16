@@ -107,6 +107,16 @@ class Content {
       (type == null || type == ContentType.text) &&
       (music == null || music.isEmpty);
   String get textPath => '/texts/' + authorID + '/documents/' + contentID;
+
+  static Map<String,dynamic> getDelta(Content c1, Content c2) {
+    Map<String, dynamic> secondData = c2.toData();
+    Map<String, dynamic> delta = Map<String, dynamic>();
+    c1.toData().forEach((String key, dynamic val) {
+      if (val != secondData[key])
+        delta[key] = secondData[key];
+    });
+    return delta;
+  }
 }
 
 String normalizeDate(DateTime time) =>
