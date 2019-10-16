@@ -26,11 +26,7 @@ class AuthorEditBloc extends Bloc<AuthorEditEvent, AuthorEditState>
       _grabUserPic();
       return AuthorEditingState();
     } else {
-      _bio = initialAuthor.bio;
-      _name = initialAuthor.name;
-      _photoUrl = initialAuthor.imgUrl;
-      _isVisible = initialAuthor.isVisible;
-      return AuthorEditingState(_name, _bio, _photoUrl, _isVisible);
+      return AuthorEditingState(name: initialAuthor.name, bio: initialAuthor.bio, photoUrl: initialAuthor.imgUrl, isVisible: initialAuthor.isVisible);
     }
   }
 
@@ -39,27 +35,30 @@ class AuthorEditBloc extends Bloc<AuthorEditEvent, AuthorEditState>
     dispatch(PhotoChangeEvent(user.photoURL));
   }
 
-  String _bio;
-  String _name;
-  String _photoUrl;
-  bool _isVisible;
-
   _commit() async {
     final AuthUser user = await app.auth().currentUser;
     final FirestoreDocumentReference ref =
         app.firestore().doc('/texts/' + user.uid);
     AuthUserProfile info = AuthUserProfile();
-    if (_name != null) info.displayName = _name;
-    if (_photoUrl != null) info.photoUrl = _photoUrl;
-    Map<String, dynamic> toChange = {};
-    if (_bio != null) toChange['bio'] = _bio;
-    if (_name != null) toChange['authorName'] = _name;
-    if (_photoUrl != null) toChange['imgUrl'] = _photoUrl;
-    if (_isVisible != null) toChange['isVisible'] = _isVisible;
+    Map<String, dynamic> toChange;
+    if (initialAuthor == null) {
+      toChange = currentState.author.toData();
+    } else {
+      toChange = Author.getDelta(initialAuthor, currentState.author);
+    }
+    if (toChange['authorName'] != null) info.displayName = toChange['authorName'];
+    if (toChange['imgUrl'] != null) info.photoUrl = toChange['imgUrl'];
+
     try {
-      if (info.photoUrl != null || info.displayName != null)
+      if (toChange['authorName'] != null || toChange['imgUrl'] != null)
         await user.updateProfile(info);
-      if (toChange.isNotEmpty) await ref.set(toChange);
+      if (toChange.isNotEmpty) {
+        if (initialAuthor != null) {
+          await ref.update(toChange);
+        } else {
+          await ref.set(toChange);
+        }
+      }
     } catch (e) {
       print(e ?? 'EXCEPTION ON EDIT');
     }
@@ -76,10 +75,6 @@ class AuthorEditBloc extends Bloc<AuthorEditEvent, AuthorEditState>
     }
   }
 
-  _changeVisibility(bool visibility) {
-    _isVisible = visibility;
-  }
-
   @override
   Stream<AuthorEditState> mapEventToState(
     AuthorEditEvent event,
@@ -88,19 +83,20 @@ class AuthorEditBloc extends Bloc<AuthorEditEvent, AuthorEditState>
       uploadFile(event.bytes, event.name);
     }
     if (event is PhotoChangeEvent) {
-      _photoUrl = event.url;
+      yield currentState.copyWith(photoUrl: event.url);
     }
     if (event is BioChangedEvent) {
-      _bio = event.bio;
+      yield currentState.copyWith(bio: event.bio);
     }
     if (event is NameChangedEvent) {
-      _name = event.name;
+      yield currentState.copyWith(name: event.name);
     }
     if (event is CommitEvent) {
       _commit();
     }
     if (event is PhotoUploadCancelEvent) {
       cancelUpload();
+      yield currentState.getPureState();
     }
 
     if (event is AuthorDeleteEvent) {
@@ -109,14 +105,16 @@ class AuthorEditBloc extends Bloc<AuthorEditEvent, AuthorEditState>
     }
 
     if (event is VisibilityChangedEvent) {
-      _changeVisibility(event.visibility);
+      yield currentState.copyWith(isVisible: event.visibility);
     }
 
     if (event is PhotoUploadFractionEvent) {
-      yield AuthorEditingUploadingState(
-          _name, _bio, _photoUrl, _isVisible, event.fraction);
-    } else {
-      yield AuthorEditingState(_name, _bio, _photoUrl, _isVisible);
+      final AuthorEditState state = currentState;
+      if (state is AuthorEditingUploadingState) {
+        yield state.copyWith(fraction: event.fraction);
+      } else {
+        yield AuthorEditingUploadingState.fromPure(state).copyWith(fraction: event.fraction);
+      }
     }
   }
 }
