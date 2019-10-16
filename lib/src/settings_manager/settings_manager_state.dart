@@ -6,16 +6,17 @@ import 'enums.dart';
 @immutable
 abstract class SettingsManagerState extends Equatable {
   SettingsManagerState(
-      {this.themeOptions = PreferredBrightness.system, this.textAlign = PreferredTextAlign.justify, this.fontSize = FontSize.normal, this.targetPlatform = AbstractTargetPlatform.android});
+      {this.themeOptions, this.textAlign, this.fontSize, this.targetPlatform});
   final PreferredBrightness themeOptions;
   final PreferredTextAlign textAlign;
   final FontSize fontSize;
   final AbstractTargetPlatform targetPlatform;
+
+  SettingsManagerState copyWith({PreferredBrightness themeOptions, PreferredTextAlign textAlign, FontSize fontSize,AbstractTargetPlatform targetPlatform});
+
   @override
   List<Object> get props => [themeOptions,textAlign,fontSize,targetPlatform];
 }
-
-class PlaceholderSettingsManagerState extends SettingsManagerState {}
 
 class LoadedSettingsManagerState extends SettingsManagerState {
   LoadedSettingsManagerState(
@@ -25,4 +26,12 @@ class LoadedSettingsManagerState extends SettingsManagerState {
             textAlign: textAlign,
             fontSize: fontSize,
             targetPlatform: targetPlatform);
+
+  @override
+  LoadedSettingsManagerState copyWith({PreferredBrightness themeOptions, PreferredTextAlign textAlign, FontSize fontSize,AbstractTargetPlatform targetPlatform}) {
+    return LoadedSettingsManagerState(themeOptions: themeOptions ?? this.themeOptions,
+        textAlign: textAlign ?? this.textAlign,
+        fontSize: fontSize ?? this.fontSize,
+        targetPlatform: targetPlatform ?? this.targetPlatform);
+  }
 }

@@ -6,59 +6,65 @@ import 'package:seaside_blocs/src/singletons.dart';
 
 import './bloc.dart';
 
+const Map<Type, String> _kTypeKeyMap = {
+  PreferredBrightness: 'themeOptions',
+  PreferredTextAlign: 'textAlign',
+  FontSize: 'fontSize',
+  AbstractTargetPlatform: 'targetPlatform'
+};
+const Map<Type, int> _kTypeDefaultMap = {
+  PreferredBrightness: 0,
+  PreferredTextAlign: 0,
+  FontSize: 2,
+  AbstractTargetPlatform: 0
+};
+
 abstract class SettingsManagerBloc
     extends Bloc<SettingsManagerEvent, SettingsManagerState> {}
 
 class LocalSettingsManagerBloc extends SettingsManagerBloc {
   LocalSettingsManagerBloc([this.prefs]);
   KeyValueStore prefs;
-  LoadedSettingsManagerState _updateSettings(UpdateSettingsEvent event) {
-      final PreferredBrightness options = event.themeOptions ?? currentState.themeOptions;
-      final PreferredTextAlign align = event.textAlign ?? currentState.textAlign;
-      final FontSize size = event.fontSize ?? currentState.fontSize;
-      final AbstractTargetPlatform platform = event.targetPlatform ?? currentState.targetPlatform;
-      if (event.themeOptions != null)
-        prefs.setInt('themeOptions', PreferredBrightness.values.indexOf(options));
-      if (event.textAlign != null)
-        prefs.setInt('textAlign', PreferredTextAlign.values.indexOf(align));
-      if (event.fontSize != null)
-        prefs.setInt('fontSize', FontSize.values.indexOf(size));
-      if (event.targetPlatform != null)
-        prefs.setInt('targetPlatform', AbstractTargetPlatform.values.indexOf(platform));
-
-      return LoadedSettingsManagerState(
-          themeOptions: options, textAlign: align, fontSize: size,targetPlatform: platform);
-  }
-
-  SettingsManagerState _initialize() {
-    prefs ??= keyValueStore;
-    final int themeOptions = getInt('themeOptions');
-    final PreferredBrightness options =
-        themeOptions == null ? null : PreferredBrightness.values.elementAt(themeOptions);
-    final int textAlign = getInt('textAlign');
-    final PreferredTextAlign align =
-        textAlign == null ? null : PreferredTextAlign.values.elementAt(textAlign);
-    final int fontSize = getInt('fontSize');
-    final FontSize size =
-        fontSize == null ? null : FontSize.values.elementAt(fontSize);
-    final int targetPlatform = getInt('targetPlatform');
-    final AbstractTargetPlatform platform =
-    targetPlatform == null ? null : AbstractTargetPlatform.values.elementAt(targetPlatform);
-    return LoadedSettingsManagerState(
-        themeOptions: options ?? PreferredBrightness.system, textAlign: align ?? PreferredTextAlign.justify, fontSize: size ?? FontSize.normal,targetPlatform: platform ?? AbstractTargetPlatform.android);
-  }
 
   @override
   SettingsManagerState get initialState {
-    return _initialize();
+    prefs ??= keyValueStore;
+    return LoadedSettingsManagerState(
+      themeOptions: PreferredBrightness.values[getInt<PreferredBrightness>()],
+      textAlign: PreferredTextAlign.values[getInt<PreferredTextAlign>()],
+      fontSize: FontSize.values[getInt<FontSize>()],
+      targetPlatform: AbstractTargetPlatform.values[getInt<AbstractTargetPlatform>()],
+    );
   }
 
-  int getInt(String key) {
+  int getInt<T>() {
     int i;
     try {
-      i = prefs?.getInt(key);
+      i = prefs?.getInt(_kTypeKeyMap[T]);
     } catch (e) {}
-    return i;
+    return i ?? _kTypeDefaultMap[T];
+  }
+
+  void setInt<T>(int i) {
+    try {
+      prefs.setInt(_kTypeKeyMap[T], i);
+    } catch (e) {}
+  }
+
+  _updateTheme(PreferredBrightness brightness) {
+    setInt<PreferredBrightness>(PreferredBrightness.values.indexOf(brightness));
+  }
+
+  _updateAlignment(PreferredTextAlign textAlign) {
+    setInt<PreferredTextAlign>(PreferredTextAlign.values.indexOf(textAlign));
+  }
+
+  _updateFontSize(FontSize fontSize) {
+    setInt<FontSize>(FontSize.values.indexOf(fontSize));
+  }
+
+  _updatePlatform(AbstractTargetPlatform targetPlatform) {
+    setInt<AbstractTargetPlatform>(AbstractTargetPlatform.values.indexOf(targetPlatform));
   }
 
   @override
@@ -72,8 +78,21 @@ class LocalSettingsManagerBloc extends SettingsManagerBloc {
           fontSize: event.fontSize,
           targetPlatform: event.targetPlatform);
     }
-    if (event is UpdateSettingsEvent) {
-      yield _updateSettings(event);
+    if (event is UpdateThemeEvent) {
+      _updateTheme(event.themeOptions);
+      yield currentState.copyWith(themeOptions: event.themeOptions);
+    }
+    if (event is UpdateAlignmentEvent) {
+      _updateAlignment(event.textAlign);
+      yield currentState.copyWith(textAlign: event.textAlign);
+    }
+    if (event is UpdateFontSizeEvent) {
+      _updateFontSize(event.fontSize);
+      yield currentState.copyWith(fontSize: event.fontSize);
+    }
+    if (event is UpdatePlatformEvent) {
+      _updatePlatform(event.targetPlatform);
+      yield currentState.copyWith(targetPlatform: event.targetPlatform);
     }
   }
 }
