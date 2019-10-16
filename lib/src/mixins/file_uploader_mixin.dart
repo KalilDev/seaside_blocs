@@ -45,12 +45,13 @@ mixin FileUploaderMixin<T1, T2> on Bloc<T1, T2> {
         case FirebaseStorageTaskEventType.progress:
           final double fraction =
               event.snapshot.bytesTransferred / event.snapshot.totalByteCount;
-          if (isWeb && fraction == 1.0) {
+          if (isWeb && 1-fraction < 0.16) {
+            await Future.delayed(Duration(milliseconds: 1200));
             final result = await ref.downloadURL();
             if (onUploaded == null)
-              _onUploaded(result);
+              _onUploaded(result.toString());
             else
-              onUploaded(result);
+              onUploaded(result.toString());
             _task = null;
             _uploadSubscription.cancel();
           } else {

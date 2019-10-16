@@ -6,7 +6,7 @@ import 'enums.dart';
 @immutable
 abstract class SettingsManagerState extends Equatable {
   SettingsManagerState(
-      {this.themeOptions, this.textAlign, this.fontSize, this.targetPlatform});
+      {this.themeOptions = PreferredBrightness.system, this.textAlign = PreferredTextAlign.justify, this.fontSize = FontSize.normal, this.targetPlatform = AbstractTargetPlatform.android});
   final PreferredBrightness themeOptions;
   final PreferredTextAlign textAlign;
   final FontSize fontSize;

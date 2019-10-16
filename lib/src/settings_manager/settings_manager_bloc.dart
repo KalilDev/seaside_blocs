@@ -13,46 +13,24 @@ class LocalSettingsManagerBloc extends SettingsManagerBloc {
   LocalSettingsManagerBloc([this.prefs]);
   KeyValueStore prefs;
   LoadedSettingsManagerState _updateSettings(UpdateSettingsEvent event) {
-    try {
-      PreferredBrightness options = event.themeOptions;
-      PreferredTextAlign align = event.textAlign;
-      FontSize size = event.fontSize;
-      AbstractTargetPlatform platform = event.targetPlatform;
-      if (options == null) {
-        final int themeOptions = getInt('themeOptions');
-        options = themeOptions == null
-            ? null
-            : PreferredBrightness.values.elementAt(themeOptions);
-      } else {
+      final PreferredBrightness options = event.themeOptions ?? currentState.themeOptions;
+      final PreferredTextAlign align = event.textAlign ?? currentState.textAlign;
+      final FontSize size = event.fontSize ?? currentState.fontSize;
+      final AbstractTargetPlatform platform = event.targetPlatform ?? currentState.targetPlatform;
+      if (event.themeOptions != null)
         prefs.setInt('themeOptions', PreferredBrightness.values.indexOf(options));
-      }
-      if (align == null) {
-        final int textAlign = getInt('textAlign');
-        align =
-            textAlign == null ? null : PreferredTextAlign.values.elementAt(textAlign);
-      } else {
+      if (event.textAlign != null)
         prefs.setInt('textAlign', PreferredTextAlign.values.indexOf(align));
-      }
-      if (size == null) {
-        final int fontSize = getInt('fontSize');
-        size = fontSize == null ? null : FontSize.values.elementAt(fontSize);
-      } else {
+      if (event.fontSize != null)
         prefs.setInt('fontSize', FontSize.values.indexOf(size));
-      }
-      if (platform == null) {
-        final int targetPlatform = getInt('targetPlatform');
-        platform = targetPlatform == null ? null : AbstractTargetPlatform.values.elementAt(targetPlatform);
-      } else {
+      if (event.targetPlatform != null)
         prefs.setInt('targetPlatform', AbstractTargetPlatform.values.indexOf(platform));
-      }
+
       return LoadedSettingsManagerState(
           themeOptions: options, textAlign: align, fontSize: size,targetPlatform: platform);
-    } catch (e) {
-      return LoadedSettingsManagerState();
-    }
   }
 
-  _initialize() {
+  SettingsManagerState _initialize() {
     prefs ??= keyValueStore;
     final int themeOptions = getInt('themeOptions');
     final PreferredBrightness options =
@@ -66,14 +44,13 @@ class LocalSettingsManagerBloc extends SettingsManagerBloc {
     final int targetPlatform = getInt('targetPlatform');
     final AbstractTargetPlatform platform =
     targetPlatform == null ? null : AbstractTargetPlatform.values.elementAt(targetPlatform);
-    dispatch(LoadedSettingsEvent(
-        themeOptions: options, textAlign: align, fontSize: size,targetPlatform: platform));
+    return LoadedSettingsManagerState(
+        themeOptions: options ?? PreferredBrightness.system, textAlign: align ?? PreferredTextAlign.justify, fontSize: size ?? FontSize.normal,targetPlatform: platform ?? AbstractTargetPlatform.android);
   }
 
   @override
   SettingsManagerState get initialState {
-    _initialize();
-    return PlaceholderSettingsManagerState();
+    return _initialize();
   }
 
   int getInt(String key) {
