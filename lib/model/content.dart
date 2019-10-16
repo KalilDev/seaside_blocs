@@ -60,28 +60,8 @@ class Content {
   @override
   bool operator ==(other) {
     if (other is Content) {
-      bool tagsSame;
-      if (other.tags?.length != this.tags?.length) {
-        tagsSame = false;
-      } else {
-        tagsSame = true;
-        if (other?.tags != null && this?.tags != null) {
-          for (int i = 0; i < other.tags.length; i++) {
-            tagsSame = other.tags[i] == this.tags[i];
-            if (tagsSame == false) break;
-          }
-        } else {
-          if (other.tags != null || this.tags != null) tagsSame = false;
-        }
-      }
-      return (tagsSame) &&
-          (other.title == this.title) &&
-          (other.type == this.type) &&
-          (other.text?.replaceAll('\n', '^NL') ==
-              this.text?.replaceAll('\n', '^NL')) &&
-          (other.imageUrl == this.imageUrl) &&
-          (other.date == this.date) &&
-          (other.music == this.music);
+      print(getDelta(this, other));
+      return getDelta(this, other).isEmpty;
     }
     return false;
   }
@@ -94,7 +74,8 @@ class Content {
         text.hashCode +
         imageUrl.hashCode +
         date.hashCode +
-        music.hashCode;
+        music.hashCode +
+        isVisible.hashCode;
   }
 
   bool get isEmpty =>
@@ -105,15 +86,35 @@ class Content {
           (imageUrl is String && imageUrl.isEmpty)) &&
       (tags == null || tags.isEmpty) &&
       (type == null || type == ContentType.text) &&
-      (music == null || music.isEmpty);
+      (music == null || music.isEmpty) &&
+          (isVisible == null);
   String get textPath => '/texts/' + authorID + '/documents/' + contentID;
 
   static Map<String,dynamic> getDelta(Content c1, Content c2) {
     Map<String, dynamic> secondData = c2.toData();
     Map<String, dynamic> delta = Map<String, dynamic>();
     c1.toData().forEach((String key, dynamic val) {
-      if (val != secondData[key])
-        delta[key] = secondData[key];
+      if (val is List) {
+        final secondVal = secondData[key];
+        if (secondVal is List) {
+          if (secondVal.length != val.length)
+            delta[key] = secondVal;
+
+          val.sort();
+          secondVal.sort();
+          for (int i = 0; i<val.length;i++) {
+            if (val[i] != secondVal[i]) {
+              delta[key] = secondVal;
+              break;
+            }
+          }
+        } else {
+          delta[key] = secondVal;
+        }
+      } else {
+        if (val != secondData[key])
+          delta[key] = secondData[key];
+      }
     });
     return delta;
   }
