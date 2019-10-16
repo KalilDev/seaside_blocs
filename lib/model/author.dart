@@ -18,10 +18,20 @@ class Author {
         isVisible: data['isVisible']);
   }
 
-  Map<String, dynamic> toFirestore() => {
+  Map<String, dynamic> toData() => {
         'authorName': name,
         'imgUrl': imgUrl,
         'bio': bio,
         'isVisible': isVisible
       };
+
+  static getDelta(Author a1, Author a2) {
+    Map<String, dynamic> secondData = a2.toData();
+    Map<String, dynamic> delta = Map<String, dynamic>();
+    a1.toData().forEach((String key, dynamic val) {
+      if (val != secondData[key])
+        delta[key] = secondData[key];
+    });
+    return delta;
+  }
 }
