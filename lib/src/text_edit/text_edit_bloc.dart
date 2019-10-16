@@ -77,7 +77,7 @@ class TextEditBloc extends Bloc<TextEditEvent, TextEditState>
         .doc(initialContent != null ? initialContent.contentID : null);
     final Content content = currentState.content;
     Map<String, dynamic> toChange = {};
-    if (initialContent != null) {
+    if (initialContent == null) {
       toChange = content.toData();
     } else {
       if (content.isEmpty) return;
@@ -156,16 +156,12 @@ class TextEditBloc extends Bloc<TextEditEvent, TextEditState>
     if (event is PhotoAddedEvent) {
       yield currentState.getPureState().copyWith(photoUrls: _addPhoto(event.url));
     }
-    if (event is PhotoUploadCanceledEvent) {
+    if (event is UploadCanceledEvent) {
       cancelUpload();
       yield currentState.getPureState();
     }
     if (event is MusicAddedEvent) {
       yield currentState.getPureState().copyWith(musicUrl: event.url);
-    }
-    if (event is MusicUploadCanceledEvent) {
-      cancelUpload();
-      yield currentState.getPureState();
     }
     if (event is CommitEvent) {
       _commit();

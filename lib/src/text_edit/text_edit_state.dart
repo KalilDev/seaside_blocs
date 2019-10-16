@@ -118,7 +118,8 @@ class TextEditingState extends TextEditState {
         type: c.type,
         date: c.date == null ? null : DateTime.parse(c.date),
         isVisible: c.isVisible,
-        musicUrl: c.music);
+        musicUrl: c.music,
+        newTags: []);
   }
 
   @override

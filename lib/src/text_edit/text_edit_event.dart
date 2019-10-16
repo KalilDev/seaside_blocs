@@ -11,6 +11,8 @@ abstract class UploadFractionEvent extends TextEditEvent {
   final double fraction;
 }
 
+class UploadCanceledEvent extends TextEditEvent {}
+
 class TagToggledEvent extends TextEditEvent {
   TagToggledEvent(this.tag);
   final String tag;
@@ -56,8 +58,6 @@ class PhotoUploadFractionEvent extends UploadFractionEvent {
   PhotoUploadFractionEvent(double fraction) : super(fraction);
 }
 
-class PhotoUploadCanceledEvent extends TextEditEvent {}
-
 class PhotoUploadStartEvent extends TextEditEvent {}
 
 class MusicUploadEvent extends TextEditEvent {
@@ -76,8 +76,6 @@ class MusicDeletedEvent extends TextEditEvent {}
 class MusicUploadFractionEvent extends UploadFractionEvent {
   MusicUploadFractionEvent(double fraction) : super(fraction);
 }
-
-class MusicUploadCanceledEvent extends TextEditEvent {}
 
 class MusicUploadStartEvent extends TextEditEvent {}
 
