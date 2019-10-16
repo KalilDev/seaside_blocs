@@ -6,6 +6,11 @@ import 'package:seaside_blocs/model/content.dart';
 @immutable
 abstract class TextEditEvent {}
 
+abstract class UploadFractionEvent extends TextEditEvent {
+  UploadFractionEvent(this.fraction);
+  final double fraction;
+}
+
 class TagToggledEvent extends TextEditEvent {
   TagToggledEvent(this.tag);
   final String tag;
@@ -47,12 +52,13 @@ class PhotoDeletedEvent extends TextEditEvent {
   final int index;
 }
 
-class PhotoUploadFractionEvent extends TextEditEvent {
-  PhotoUploadFractionEvent(this.fraction);
-  final double fraction;
+class PhotoUploadFractionEvent extends UploadFractionEvent {
+  PhotoUploadFractionEvent(double fraction) : super(fraction);
 }
 
 class PhotoUploadCanceledEvent extends TextEditEvent {}
+
+class PhotoUploadStartEvent extends TextEditEvent {}
 
 class MusicUploadEvent extends TextEditEvent {
   MusicUploadEvent(this.bytes, this.name);
@@ -67,12 +73,13 @@ class MusicAddedEvent extends TextEditEvent {
 
 class MusicDeletedEvent extends TextEditEvent {}
 
-class MusicUploadFractionEvent extends TextEditEvent {
-  MusicUploadFractionEvent(this.fraction);
-  final double fraction;
+class MusicUploadFractionEvent extends UploadFractionEvent {
+  MusicUploadFractionEvent(double fraction) : super(fraction);
 }
 
 class MusicUploadCanceledEvent extends TextEditEvent {}
+
+class MusicUploadStartEvent extends TextEditEvent {}
 
 class CommitEvent extends TextEditEvent {}
 
