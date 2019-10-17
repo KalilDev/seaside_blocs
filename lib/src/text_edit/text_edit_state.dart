@@ -73,6 +73,8 @@ abstract class TextEditState {
     bool isVisible,
     String musicUrl});
 
+  TextEditState copyWithNoMusic();
+
   TextEditState getPureState() {
     return TextEditingState(
         title: title,
@@ -143,6 +145,20 @@ class TextEditingState extends TextEditState {
         date: date ?? this.date,
         isVisible: isVisible ?? this.isVisible,
       musicUrl: musicUrl ?? this.musicUrl
+    );
+  }
+
+  @override
+  TextEditingState copyWithNoMusic() {
+    return TextEditingState(
+        title: this.title,
+        text: this.text,
+        photoUrls: this.photoUrls,
+        tags: this.tags,
+        newTags: this.newTags,
+        type: this.type,
+        date: this.date,
+        isVisible: this.isVisible
     );
   }
 }
@@ -249,6 +265,21 @@ class TextEditingUploadingMusicState extends TextEditingUploadingState {
         fraction: fraction ?? this.fraction
     );
   }
+
+  @override
+  TextEditingUploadingMusicState copyWithNoMusic() {
+    return TextEditingUploadingMusicState(
+        title: this.title,
+        text: this.text,
+        photoUrls: this.photoUrls,
+        tags: this.tags,
+        newTags: this.newTags,
+        type: this.type,
+        date: this.date,
+        isVisible: this.isVisible,
+        fraction: this.fraction
+    );
+  }
 }
 
 class TextEditingUploadingPhotoState extends TextEditingUploadingState {
@@ -313,6 +344,21 @@ class TextEditingUploadingPhotoState extends TextEditingUploadingState {
         isVisible: isVisible ?? this.isVisible,
         musicUrl: musicUrl ?? this.musicUrl,
         fraction: fraction ?? this.fraction
+    );
+  }
+
+  @override
+  TextEditingUploadingPhotoState copyWithNoMusic() {
+    return TextEditingUploadingPhotoState(
+        title: this.title,
+        text: this.text,
+        photoUrls: this.photoUrls,
+        tags: this.tags,
+        newTags: this.newTags,
+        type: this.type,
+        date: this.date,
+        isVisible: this.isVisible,
+        fraction: this.fraction
     );
   }
 }

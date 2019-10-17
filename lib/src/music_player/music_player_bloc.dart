@@ -23,7 +23,7 @@ abstract class MusicPlayerBloc extends Bloc<MusicPlayerEvent, MusicPlayerState> 
       play();
     }
     if (event is MusicProgressEvent) {
-      yield PlayingMusicState(currentState.duration, event.progress);
+      yield PlayingMusicState(state.duration, event.progress);
     }
     if (event is MusicPauseEvent) {
       pause();
@@ -42,26 +42,26 @@ abstract class MusicPlayerBloc extends Bloc<MusicPlayerEvent, MusicPlayerState> 
       if (state != null)
         yield state;
     }
-    _yieldPaused(MusicPlayerState currentState) {
-      if (currentState is ValuedMusicState)
-        return PausedMusicState(currentState.duration, currentState.value);
+    _yieldPaused(MusicPlayerState state) {
+      if (state is ValuedMusicState)
+        return PausedMusicState(state.duration, state.value);
       return null;
     }
 
     if (event is NativeStateChangedEvent) {
       switch (event.state) {
         case NativePlayerState.stopped:
-          yield StoppedMusicState(currentState.duration);
+          yield StoppedMusicState(state.duration);
           break;
         case NativePlayerState.playing:
           yield PlayingMusicState(
-              currentState.duration ?? Duration(seconds: 10), Duration.zero);
+              state.duration ?? Duration(seconds: 10), Duration.zero);
           break;
         case NativePlayerState.paused:
-          yield _yieldPaused(currentState);
+          yield _yieldPaused(state);
           break;
         case NativePlayerState.completed:
-          yield IdleMusicState(currentState.duration ?? Duration.zero);
+          yield IdleMusicState(state.duration ?? Duration.zero);
           break;
       }
     }

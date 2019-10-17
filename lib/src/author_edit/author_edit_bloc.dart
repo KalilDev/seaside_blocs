@@ -42,9 +42,9 @@ class AuthorEditBloc extends Bloc<AuthorEditEvent, AuthorEditState>
     AuthUserProfile info = AuthUserProfile();
     Map<String, dynamic> toChange;
     if (initialAuthor == null) {
-      toChange = currentState.author.toData();
+      toChange = state.author.toData();
     } else {
-      toChange = Author.getDelta(initialAuthor, currentState.author);
+      toChange = Author.getDelta(initialAuthor, state.author);
     }
     if (toChange['authorName'] != null) info.displayName = toChange['authorName'];
     if (toChange['imgUrl'] != null) info.photoUrl = toChange['imgUrl'];
@@ -83,20 +83,20 @@ class AuthorEditBloc extends Bloc<AuthorEditEvent, AuthorEditState>
       uploadFile(event.bytes, event.name);
     }
     if (event is PhotoChangeEvent) {
-      yield currentState.copyWith(photoUrl: event.url);
+      yield state.copyWith(photoUrl: event.url);
     }
     if (event is BioChangedEvent) {
-      yield currentState.copyWith(bio: event.bio);
+      yield state.copyWith(bio: event.bio);
     }
     if (event is NameChangedEvent) {
-      yield currentState.copyWith(name: event.name);
+      yield state.copyWith(name: event.name);
     }
     if (event is CommitEvent) {
       _commit();
     }
     if (event is PhotoUploadCancelEvent) {
       cancelUpload();
-      yield currentState.getPureState();
+      yield state.getPureState();
     }
 
     if (event is AuthorDeleteEvent) {
@@ -105,15 +105,15 @@ class AuthorEditBloc extends Bloc<AuthorEditEvent, AuthorEditState>
     }
 
     if (event is VisibilityChangedEvent) {
-      yield currentState.copyWith(isVisible: event.visibility);
+      yield state.copyWith(isVisible: event.visibility);
     }
 
     if (event is PhotoUploadFractionEvent) {
-      final AuthorEditState state = currentState;
-      if (state is AuthorEditingUploadingState) {
-        yield state.copyWith(fraction: event.fraction);
+      final AuthorEditState currentState = state;
+      if (currentState is AuthorEditingUploadingState) {
+        yield currentState.copyWith(fraction: event.fraction);
       } else {
-        yield AuthorEditingUploadingState.fromPure(state).copyWith(fraction: event.fraction);
+        yield AuthorEditingUploadingState.fromPure(currentState).copyWith(fraction: event.fraction);
       }
     }
   }

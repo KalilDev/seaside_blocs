@@ -58,11 +58,8 @@ abstract class FirebaseStreamManagerBloc
         authorIDTagsMap: authorIDTagsMap);
   }
 
-  Future<Iterable> searchResults(String query) async {
+  static Iterable searchResults(String query, Iterable<Content> contents, Iterable<Author> authors) {
     if (query == null || query == '') return Iterable.empty();
-    return Future.microtask(() {
-      final Iterable<Content> contents = this.currentState.contents;
-      final Iterable<Author> authors = this.currentState.authors;
       Iterable q = Iterable.empty();
       q = q.followedBy(contents.where((Content c) =>
           (c?.tags?.any((String tag) => containsIgnoreCase(tag, query)) ??
@@ -71,7 +68,6 @@ abstract class FirebaseStreamManagerBloc
       q = q.followedBy(
           authors.where((Author a) => containsIgnoreCase(a.name, query)));
       return q;
-    });
   }
 }
 

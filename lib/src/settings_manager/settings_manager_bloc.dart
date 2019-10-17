@@ -80,19 +80,19 @@ class LocalSettingsManagerBloc extends SettingsManagerBloc {
     }
     if (event is UpdateThemeEvent) {
       _updateTheme(event.themeOptions);
-      yield currentState.copyWith(themeOptions: event.themeOptions);
+      yield state.copyWith(themeOptions: event.themeOptions);
     }
     if (event is UpdateAlignmentEvent) {
       _updateAlignment(event.textAlign);
-      yield currentState.copyWith(textAlign: event.textAlign);
+      yield state.copyWith(textAlign: event.textAlign);
     }
     if (event is UpdateFontSizeEvent) {
       _updateFontSize(event.fontSize);
-      yield currentState.copyWith(fontSize: event.fontSize);
+      yield state.copyWith(fontSize: event.fontSize);
     }
     if (event is UpdatePlatformEvent) {
       _updatePlatform(event.targetPlatform);
-      yield currentState.copyWith(targetPlatform: event.targetPlatform);
+      yield state.copyWith(targetPlatform: event.targetPlatform);
     }
   }
 }

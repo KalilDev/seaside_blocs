@@ -29,19 +29,19 @@ class TextEditBloc extends Bloc<TextEditEvent, TextEditState>
   }
 
   List<String> _deletePhoto(int i) {
-    final List<String> photoUrls = currentState.photoUrls;
+    final List<String> photoUrls = state.photoUrls;
     photoUrls.removeAt(i);
     return photoUrls;
   }
 
   List<String> _addPhoto(String url) {
-    final List<String> photoUrls = currentState.photoUrls ?? [];
+    final List<String> photoUrls = state.photoUrls ?? [];
     photoUrls.add(url);
     return photoUrls;
   }
 
   List<String> _toggleTag(String tag) {
-    final List<String> tags = currentState.tags;
+    final List<String> tags = state.tags;
     if (tags.contains(tag)) {
       tags.remove(tag);
     } else {
@@ -51,19 +51,19 @@ class TextEditBloc extends Bloc<TextEditEvent, TextEditState>
   }
 
   List<String>_addTag() {
-    final List<String> newTags = currentState.newTags ?? [];
+    final List<String> newTags = state.newTags ?? [];
     newTags.add(null);
     return newTags;
   }
 
   List<String> _editTag(int i, String tag) {
-    List<String> newTags = currentState.newTags ?? [];
+    List<String> newTags = state.newTags ?? [];
     newTags[i] = tag;
     return newTags;
   }
 
   List<String> _removeTag(int i) {
-    List<String> newTags = currentState.newTags;
+    List<String> newTags = state.newTags;
     newTags.removeAt(i);
     return newTags;
   }
@@ -75,7 +75,7 @@ class TextEditBloc extends Bloc<TextEditEvent, TextEditState>
         .doc('/texts/' + user.uid)
         .collection('documents')
         .doc(initialContent != null ? initialContent.contentID : null);
-    final Content content = currentState.content;
+    final Content content = state.content;
     Map<String, dynamic> toChange = {};
     if (initialContent == null) {
       toChange = content.toData();
@@ -126,42 +126,43 @@ class TextEditBloc extends Bloc<TextEditEvent, TextEditState>
   Stream<TextEditState> mapEventToState(
     TextEditEvent event,
   ) async* {
+    print(event.toString());
     if (event is TagToggledEvent) {
-      yield currentState.copyWith(tags: _toggleTag(event.tag));
+      yield state.copyWith(tags: _toggleTag(event.tag));
     }
     if (event is TextChangedEvent) {
-      yield currentState.copyWith(text: event.text);
+      yield state.copyWith(text: event.text);
     }
     if (event is TitleChangedEvent) {
-      yield currentState.copyWith(title: event.title);
+      yield state.copyWith(title: event.title);
     }
     if (event is DateChangedEvent) {
-      yield currentState.copyWith(date: event.date);
+      yield state.copyWith(date: event.date);
     }
     if (event is TypeChangedEvent) {
-      yield currentState.copyWith(type: event.type);
+      yield state.copyWith(type: event.type);
     }
     if (event is PhotoUploadEvent) {
       _uploadPhoto(event.bytes, event.name);
     }
     if (event is PhotoDeletedEvent) {
-      yield currentState.copyWith(photoUrls: _deletePhoto(event.index));
+      yield state.copyWith(photoUrls: _deletePhoto(event.index));
     }
     if (event is MusicUploadEvent) {
       _uploadMusic(event.bytes, event.name);
     }
     if (event is MusicDeletedEvent) {
-      yield currentState.copyWith(musicUrl: null);
+      yield state.copyWithNoMusic();
     }
     if (event is PhotoAddedEvent) {
-      yield currentState.getPureState().copyWith(photoUrls: _addPhoto(event.url));
+      yield state.getPureState().copyWith(photoUrls: _addPhoto(event.url));
     }
     if (event is UploadCanceledEvent) {
       cancelUpload();
-      yield currentState.getPureState();
+      yield state.getPureState();
     }
     if (event is MusicAddedEvent) {
-      yield currentState.getPureState().copyWith(musicUrl: event.url);
+      yield state.getPureState().copyWith(musicUrl: event.url);
     }
     if (event is CommitEvent) {
       _commit();
@@ -170,34 +171,34 @@ class TextEditBloc extends Bloc<TextEditEvent, TextEditState>
       _delete();
     }
     if (event is TagAddedEvent) {
-      yield currentState.copyWith(newTags: _addTag());
+      yield state.copyWith(newTags: _addTag());
     }
     if (event is TagRemovedEvent) {
-      yield currentState.copyWith(newTags: _removeTag(event.index));
+      yield state.copyWith(newTags: _removeTag(event.index));
     }
     if (event is TagEditedEvent) {
-      yield currentState.copyWith(newTags: _editTag(event.index, event.tag));
+      yield state.copyWith(newTags: _editTag(event.index, event.tag));
     }
     if (event is VisibilityChangedEvent) {
-      yield currentState.copyWith(isVisible: event.visibility);
+      yield state.copyWith(isVisible: event.visibility);
     }
     if (event is MusicUploadStartEvent) {
-      yield TextEditingUploadingMusicState.fromPure(currentState);
+      yield TextEditingUploadingMusicState.fromPure(state);
     }
     if (event is PhotoUploadStartEvent) {
-      yield TextEditingUploadingPhotoState.fromPure(currentState);
+      yield TextEditingUploadingPhotoState.fromPure(state);
     }
 
     if (event is UploadFractionEvent) {
-      final TextEditState state = currentState;
-      if (state is TextEditingUploadingState) {
-        yield state.copyWith(fraction: event.fraction);
+      final TextEditState currentState = state;
+      if (currentState is TextEditingUploadingState) {
+        yield currentState.copyWith(fraction: event.fraction);
       } else {
         if (event is MusicUploadFractionEvent) {
-          yield TextEditingUploadingMusicState.fromPure(state).copyWith(fraction: event.fraction);
+          yield TextEditingUploadingMusicState.fromPure(currentState).copyWith(fraction: event.fraction);
         }
         if (event is PhotoUploadFractionEvent) {
-          yield TextEditingUploadingPhotoState.fromPure(state).copyWith(fraction: event.fraction);
+          yield TextEditingUploadingPhotoState.fromPure(currentState).copyWith(fraction: event.fraction);
         }
       }
     }
