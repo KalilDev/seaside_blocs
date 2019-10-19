@@ -108,18 +108,18 @@ class TextEditBloc extends Bloc<TextEditEvent, TextEditState>
 
   _uploadPhoto(Uint8List bytes, String name) {
     uploadFile(bytes, name,
-        onStartUpload: ()=>dispatch(PhotoUploadStartEvent()),
-        onUploaded: (String url) => dispatch(PhotoAddedEvent(url)),
+        onStartUpload: ()=>add(PhotoUploadStartEvent()),
+        onUploaded: (String url) => add(PhotoAddedEvent(url)),
         onUploadProgress: (double f) =>
-            dispatch(PhotoUploadFractionEvent(f)));
+            add(PhotoUploadFractionEvent(f)));
   }
 
   _uploadMusic(Uint8List bytes, String name) {
     uploadFile(bytes, name,
-        onStartUpload: ()=>dispatch(MusicUploadStartEvent()),
-        onUploaded: (String url) => dispatch(MusicAddedEvent(url)),
+        onStartUpload: ()=>add(MusicUploadStartEvent()),
+        onUploaded: (String url) => add(MusicAddedEvent(url)),
         onUploadProgress: (double f) =>
-            dispatch(MusicUploadFractionEvent(f)));
+            add(MusicUploadFractionEvent(f)));
   }
 
   @override

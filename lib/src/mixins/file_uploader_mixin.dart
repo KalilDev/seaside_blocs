@@ -88,8 +88,8 @@ mixin FileUploaderMixin<T1, T2> on Bloc<T1, T2> {
   }
 
   @override
-  void dispose() {
+  void close() {
     cancelUpload();
-    super.dispose();
+    super.close();
   }
 }

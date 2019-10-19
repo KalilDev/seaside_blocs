@@ -19,9 +19,9 @@ class AuthorEditBloc extends Bloc<AuthorEditEvent, AuthorEditState>
     setupFileUploader(
         app: app,
         onUploadProgress: (double progress) =>
-            dispatch(PhotoUploadFractionEvent(progress)),
-        onStartUpload: () => dispatch(PhotoChangeEvent()),
-        onUploaded: (String s) => dispatch(PhotoChangeEvent(s)));
+            add(PhotoUploadFractionEvent(progress)),
+        onStartUpload: () => add(PhotoChangeEvent()),
+        onUploaded: (String s) => add(PhotoChangeEvent(s)));
     if (initialAuthor == null) {
       _grabUserPic();
       return AuthorEditingState();
@@ -32,7 +32,7 @@ class AuthorEditBloc extends Bloc<AuthorEditEvent, AuthorEditState>
 
   _grabUserPic() async {
     AuthUser user = await app.auth().currentUser;
-    dispatch(PhotoChangeEvent(user.photoURL));
+    add(PhotoChangeEvent(user.photoURL));
   }
 
   _commit() async {

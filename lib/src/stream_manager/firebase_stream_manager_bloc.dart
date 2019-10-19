@@ -108,7 +108,7 @@ class RealFirebaseManagerBloc extends FirebaseStreamManagerBloc {
   _handleDoc(Iterable<Content> authorContents, String authorID) async {
     authorContentMap[authorID] = authorContents;
     if (allowDocChanges) {
-      dispatch(StreamUpdatedEvent(
+      add(StreamUpdatedEvent(
           await waitAllContents(authorIterable), authorIterable));
     }
   }
@@ -175,7 +175,7 @@ class RealFirebaseManagerBloc extends FirebaseStreamManagerBloc {
         }
       }
       Iterable<Content> contents = await waitAllContents(authors);
-      dispatch(StreamUpdatedEvent(contents, authors));
+      add(StreamUpdatedEvent(contents, authors));
     }
 
     _onCurrentAuthor(FirestoreDocumentSnapshot snap) async {
@@ -219,10 +219,10 @@ class RealFirebaseManagerBloc extends FirebaseStreamManagerBloc {
   }
 
   @override
-  void dispose() {
+  void close() {
     userSubscription.cancel();
     _cleanUpState();
-    super.dispose();
+    super.close();
   }
 
   @override

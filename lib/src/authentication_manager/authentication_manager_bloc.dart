@@ -16,19 +16,19 @@ class AuthenticationManagerBloc
   _loadUser() async {
     try {
       final AuthUser user = await _auth().currentUser;
-      dispatch(ResponseEvent(user?.uid, user?.displayName));
+      add(ResponseEvent(user?.uid, user?.displayName));
     } catch (e) {
-      dispatch(ResponseEvent());
+      add(ResponseEvent());
     }
   }
 
   _googleLogin() async {
-    dispatch(ShowLoadingAuthEvent());
+    add(ShowLoadingAuthEvent());
     try {
       final AuthUser user = await _auth().signInWithGoogleAccount();
-      dispatch(ResponseEvent(user.uid, user.displayName));
+      add(ResponseEvent(user.uid, user.displayName));
     } catch (e) {
-      dispatch(ResponseEvent());
+      add(ResponseEvent());
     }
   }
 
@@ -37,7 +37,7 @@ class AuthenticationManagerBloc
       String lastName,
       String email,
       String password}) async {
-    dispatch(ShowLoadingAuthEvent());
+    add(ShowLoadingAuthEvent());
     try {
       final AuthUser user = await _auth()
           .createUserWithEmailAndPassword(email: email, password: password);
@@ -45,27 +45,27 @@ class AuthenticationManagerBloc
       final AuthUserProfile info = AuthUserProfile()
         ..displayName = '$firstName $lastName';
       user.updateProfile(info);
-      dispatch(ResponseEvent(user.uid, user.displayName));
+      add(ResponseEvent(user.uid, user.displayName));
     } catch (e) {
-      dispatch(ResponseEvent());
+      add(ResponseEvent());
     }
   }
 
   _loginUser({String email, String password}) async {
-    dispatch(ShowLoadingAuthEvent());
+    add(ShowLoadingAuthEvent());
     try {
       final AuthUser user = await _auth()
           .signInWithEmailAndPassword(email: email, password: password);
-      dispatch(ResponseEvent(user.uid, user.displayName));
+      add(ResponseEvent(user.uid, user.displayName));
     } catch (e) {
-      dispatch(ResponseEvent());
+      add(ResponseEvent());
     }
   }
 
   _logout() async {
-    dispatch(ShowLoadingAuthEvent());
+    add(ShowLoadingAuthEvent());
     await _auth().signOut();
-    dispatch(ResponseEvent());
+    add(ResponseEvent());
   }
 
   @override
