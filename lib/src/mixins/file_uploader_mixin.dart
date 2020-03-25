@@ -88,7 +88,7 @@ mixin FileUploaderMixin<T1, T2> on Bloc<T1, T2> {
   }
 
   @override
-  void close() {
+  Future<void> close() async {
     cancelUpload();
     super.close();
   }

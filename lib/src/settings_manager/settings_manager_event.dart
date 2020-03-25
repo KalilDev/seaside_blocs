@@ -7,11 +7,12 @@ abstract class SettingsManagerEvent {}
 
 class LoadedSettingsEvent extends SettingsManagerEvent {
   LoadedSettingsEvent(
-      {this.themeOptions, this.textAlign, this.fontSize, this.targetPlatform});
+      {this.themeOptions, this.textAlign, this.fontSize, this.targetPlatform, this.demoState});
   final PreferredBrightness themeOptions;
   final PreferredTextAlign textAlign;
   final FontSize fontSize;
   final AbstractTargetPlatform targetPlatform;
+  final DemoModeState demoState;
 }
 
 class UpdateThemeEvent extends SettingsManagerEvent {
@@ -33,3 +34,7 @@ class UpdatePlatformEvent extends SettingsManagerEvent {
   UpdatePlatformEvent(this.targetPlatform);
   final AbstractTargetPlatform targetPlatform;
 }
+
+class ResetTutorialEvent extends SettingsManagerEvent {}
+
+class ShowedInitialTutorialEvent extends SettingsManagerEvent {}

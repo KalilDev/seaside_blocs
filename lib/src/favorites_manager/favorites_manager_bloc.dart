@@ -1,22 +1,19 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:key_value_store/key_value_store.dart';
-import 'package:seaside_blocs/src/singletons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tuple/tuple.dart';
 import './bloc.dart';
 
-abstract class FavoritesManagerBloc
-    extends Bloc<FavoritesManagerEvent, FavoritesManagerState> {}
-
-class FavoritesLocalOnlyManagerBloc extends FavoritesManagerBloc {
-  FavoritesLocalOnlyManagerBloc([this.prefs]);
-  KeyValueStore prefs;
+class FavoritesManagerBloc
+    extends Bloc<FavoritesManagerEvent, FavoritesManagerState> {
+  FavoritesManagerBloc([this.prefs]);
+  SharedPreferences prefs;
 
   Tuple2<List<String>, List<String>> _getPrefs() {
     final List<String> authors = getStringList('favoriteAuthors');
     final List<String> contents = getStringList('favoriteContents');
-    return Tuple2(authors ?? [],contents ?? []);
+    return Tuple2(authors ?? [], contents ?? []);
   }
 
   LoadedFavoritesManagerState _addToFavorite(String s, bool isAuthor) {
@@ -27,11 +24,13 @@ class FavoritesLocalOnlyManagerBloc extends FavoritesManagerBloc {
       if (isAuthor) {
         if (!authors.contains(s))
           authors.add(s);
-        else authors.remove(s);
+        else
+          authors.remove(s);
       } else {
         if (!contents.contains(s))
           contents.add(s);
-        else contents.remove(s);
+        else
+          contents.remove(s);
       }
       isAuthor
           ? prefs?.setStringList('favoriteAuthors', authors)
@@ -42,15 +41,16 @@ class FavoritesLocalOnlyManagerBloc extends FavoritesManagerBloc {
     }
   }
 
-  LoadedFavoritesManagerState _initialize() {
-    prefs ??= keyValueStore;
+  void _initialize() async {
+    prefs = await SharedPreferences.getInstance();
     final result = _getPrefs();
-    return LoadedFavoritesManagerState(result.item1, result.item2);
+    add(LoadedFavoritesManagerEvent(result.item1, result.item2));
   }
 
   @override
   FavoritesManagerState get initialState {
-    return _initialize();
+    _initialize();
+    return LoadingFavoritesManagerState();
   }
 
   List<String> getStringList(String key) {

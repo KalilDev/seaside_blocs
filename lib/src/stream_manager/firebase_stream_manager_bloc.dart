@@ -6,78 +6,15 @@ import 'package:seaside_blocs/src/stream_manager/bloc.dart';
 import 'package:seaside_blocs/model/author.dart';
 import 'package:seaside_blocs/model/content.dart';
 import 'package:seaside_blocs/src/singletons.dart';
+import 'package:seaside_blocs/src/mixins/user_stream_consumer.dart';
 
-abstract class FirebaseStreamManagerBloc
-    extends Bloc<FirebaseStreamManagerEvent, BaseFirebaseStreamState> {
-  /// Get most queries and cache them, so the view does not have to do any of
-  /// this.
-  static FirebaseStreamState eventToStateConverter(StreamUpdatedEvent event) {
-    Map<String, Iterable<Content>> tagContentMap = {};
-    Map<ContentType, Iterable<Content>> typeContentMap = {};
-    Map<String, Content> idContentMap = {};
-    Map<String, Map<ContentType, Iterable<Content>>> authorIDContentMap = {};
-    Map<String, Author> idAuthorMap = {};
-    Map<String, List<String>> authorIDTagsMap = {};
-    for (Content c in event.contents.toList()..shuffle()) {
-      final Iterable<Content> cWithType = typeContentMap.containsKey(c.type)
-          ? typeContentMap[c.type].followedBy([c])
-          : [c];
-      typeContentMap[c.type] = cWithType;
-      idContentMap[c.contentID] = c;
-      final Iterable<String> currentAuthorTags =
-          authorIDTagsMap.containsKey(c.authorID)
-              ? authorIDTagsMap[c.authorID].followedBy(c?.tags ?? []).toSet()
-              : c?.tags ?? [];
-      authorIDTagsMap[c.authorID] = currentAuthorTags.toList();
-      for (String t in c?.tags ?? []) {
-        final Iterable<Content> cWithTag = tagContentMap.containsKey(t)
-            ? tagContentMap[t].toSet().followedBy([c])
-            : [c];
-        tagContentMap[t] = cWithTag;
-      }
-    }
-    for (Author a in event.authors.toList()..shuffle()) {
-      idAuthorMap[a.id] = a;
-      final Iterable<Content> contents =
-          event.contents.where((Content c) => c.authorID == a.id);
-      Map<ContentType, Iterable<Content>> _typeContentMap = {};
-      for (Content c in contents) {
-        final Iterable<Content> cWithType = _typeContentMap.containsKey(c.type)
-            ? _typeContentMap[c.type].followedBy([c])
-            : [c];
-        _typeContentMap[c.type] = cWithType;
-      }
-      authorIDContentMap[a.id] = _typeContentMap;
-    }
-    return FirebaseStreamState(event.contents, event.authors,
-        typeContentMap: typeContentMap,
-        tagContentMap: tagContentMap,
-        idContentMap: idContentMap,
-        authorIDContentMap: authorIDContentMap,
-        idAuthorMap: idAuthorMap,
-        authorIDTagsMap: authorIDTagsMap);
-  }
+class StreamManagerBloc extends Bloc<FirebaseStreamManagerEvent, BaseFirebaseStreamState> with UserStreamConsumer<FirebaseStreamManagerEvent, BaseFirebaseStreamState> {
 
-  static Iterable searchResults(String query, Iterable<Content> contents, Iterable<Author> authors) {
-    if (query == null || query == '') return Iterable.empty();
-      Iterable q = Iterable.empty();
-      q = q.followedBy(contents.where((Content c) =>
-          (c?.tags?.any((String tag) => containsIgnoreCase(tag, query)) ??
-              false) ||
-          containsIgnoreCase(c.title, query)));
-      q = q.followedBy(
-          authors.where((Author a) => containsIgnoreCase(a.name, query)));
-      return q;
-  }
-}
-
-class RealFirebaseManagerBloc extends FirebaseStreamManagerBloc {
-  RealFirebaseManagerBloc([FirebaseApp app])
+  StreamManagerBloc([FirebaseApp app])
       : this.app = app ?? firebaseApp,
         this.db = (app ?? firebaseApp).firestore();
   final FirebaseApp app;
   final FirestoreInstance db;
-  StreamSubscription<AuthUser> userSubscription;
   StreamSubscription<Iterable<FirestoreDocumentSnapshot>> authorsSubs;
   StreamSubscription<FirestoreDocumentSnapshot> currentAuthorSubs;
   Map<String, StreamSubscription<Iterable<Content>>> authorContentSubsMap = {};
@@ -95,14 +32,23 @@ class RealFirebaseManagerBloc extends FirebaseStreamManagerBloc {
     authorContentSubsMap = {};
   }
 
+  void onUserUpdate(AuthUser user) {
+    if (user?.uid == null) {
+      _cleanUpState();
+    } else {
+      _streamSetup(user.uid);
+    }
+  }
+  
   _userStreamSetup() async {
-    userSubscription = app.auth().userStream.listen((AuthUser user) async {
-      if (user.uid == null) {
-        _cleanUpState();
-      } else {
-        _streamSetup(user.uid);
-      }
-    });
+    print('GonnaSubscribe');
+    final AuthUser initialUser = await subscribeToStream(app, onUserUpdate);
+    print('Subscribed: ' + initialUser.uid);
+    // We need to call on this initial user because if the bloc was initialized
+    // late, we would have lost the initial event from the stream.
+    // This happens on angular because the bloc is instantiated only on it's
+    // first injection.
+    onUserUpdate(initialUser);
   }
 
   _handleDoc(Iterable<Content> authorContents, String authorID) async {
@@ -219,8 +165,7 @@ class RealFirebaseManagerBloc extends FirebaseStreamManagerBloc {
   }
 
   @override
-  void close() {
-    userSubscription.cancel();
+  Future<void> close() async {
     _cleanUpState();
     super.close();
   }
@@ -230,8 +175,75 @@ class RealFirebaseManagerBloc extends FirebaseStreamManagerBloc {
     FirebaseStreamManagerEvent event,
   ) async* {
     if (event is StreamUpdatedEvent) {
-      yield FirebaseStreamManagerBloc.eventToStateConverter(event);
+      yield eventToStateConverter(event);
     }
+  }
+
+
+
+  /// Get most queries and cache them, so the view does not have to do any of
+  /// this.
+  static FirebaseStreamState eventToStateConverter(StreamUpdatedEvent event) {
+    print('eventToState');
+    print(event.authors);
+    print(event.contents);
+    Map<String, Iterable<Content>> tagContentMap = {};
+    Map<ContentType, Iterable<Content>> typeContentMap = {};
+    Map<String, Content> idContentMap = {};
+    Map<String, Map<ContentType, Iterable<Content>>> authorIDContentMap = {};
+    Map<String, Author> idAuthorMap = {};
+    Map<String, List<String>> authorIDTagsMap = {};
+    for (Content c in event.contents.toList()..shuffle()) {
+      final Iterable<Content> cWithType = typeContentMap.containsKey(c.type)
+          ? typeContentMap[c.type].followedBy([c])
+          : [c];
+      typeContentMap[c.type] = cWithType;
+      idContentMap[c.contentID] = c;
+      final Iterable<String> currentAuthorTags =
+          authorIDTagsMap.containsKey(c.authorID)
+              ? authorIDTagsMap[c.authorID].followedBy(c?.tags ?? []).toSet()
+              : c?.tags ?? [];
+      authorIDTagsMap[c.authorID] = currentAuthorTags.toList();
+      for (String t in c?.tags ?? []) {
+        final Iterable<Content> cWithTag = tagContentMap.containsKey(t)
+            ? tagContentMap[t].toSet().followedBy([c])
+            : [c];
+        tagContentMap[t] = cWithTag;
+      }
+    }
+    for (Author a in event.authors.toList()..shuffle()) {
+      idAuthorMap[a.id] = a;
+      final Iterable<Content> contents =
+          event.contents.where((Content c) => c.authorID == a.id);
+      Map<ContentType, Iterable<Content>> _typeContentMap = {};
+      for (Content c in contents) {
+        final Iterable<Content> cWithType = _typeContentMap.containsKey(c.type)
+            ? _typeContentMap[c.type].followedBy([c])
+            : [c];
+        _typeContentMap[c.type] = cWithType;
+      }
+      authorIDContentMap[a.id] = _typeContentMap;
+    }
+    return FirebaseStreamState(event.contents, event.authors,
+        typeContentMap: typeContentMap,
+        tagContentMap: tagContentMap,
+        idContentMap: idContentMap,
+        authorIDContentMap: authorIDContentMap,
+        idAuthorMap: idAuthorMap,
+        authorIDTagsMap: authorIDTagsMap);
+  }
+
+  static Iterable searchResults(String query, Iterable<Content> contents, Iterable<Author> authors) {
+    if (query == null || query == '') return Iterable.empty();
+      Iterable q = Iterable.empty();
+      q = q.followedBy(contents.where((Content c) {
+          final bool tagContains = c?.tags?.any((String tag) => containsIgnoreCase(tag, query)) == true;
+          final bool titleContains = containsIgnoreCase(c?.title, query) == true;
+          return tagContains || titleContains;
+      }));
+      q = q.followedBy(
+          authors.where((Author a) => containsIgnoreCase(a.name, query)));
+      return q;
   }
 }
 
